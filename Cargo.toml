@@ -1,0 +1,12 @@
+[package]
+name = "proto-packet-core"
+version = "0.0.0"
+description = "This library provides the core proto-packet logic."
+readme = "README.md"
+repository = "https://github.com/nikdeapen/proto-packet-core"
+homepage = "https://github.com/nikdeapen/proto-packet-core"
+authors = ["Nik Deapen <nik@deapen.com>"]
+edition = "2018"
+license = "MIT"
+
+[dependencies]
