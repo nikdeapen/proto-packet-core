@@ -1,0 +1,110 @@
+/// // A message with unsigned integer fields.
+/// message UnsignedInts {
+///
+///     // The first field.
+///     one: u8 = 1;
+///
+///     // The second field.
+///     two: u16 = 2;
+///
+///     // The third field.
+///     three: u32 = 3;
+///
+///     // The fourth field.
+///     four: u64 = 4;
+/// }
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+pub struct UnsignedInts {
+    one: Option<u8>,
+    two: Option<u16>,
+    three: Option<u32>,
+    four: Option<u64>,
+}
+
+impl UnsignedInts {
+    //! Field: one: u8 = 1;
+
+    /// Gets the field: `one`.
+    pub fn one(&self) -> Option<u8> {
+        self.one
+    }
+
+    /// Sets the field: `one`. Returns the previous value.
+    pub fn set_one(&mut self, one: Option<u8>) -> Option<u8> {
+        let old_value: Option<u8> = self.one;
+        self.one = one;
+        old_value
+    }
+
+    /// Builds the field: `one`. Returns the struct itself.
+    pub fn with_one(mut self, one: Option<u8>) -> Self {
+        self.one = one;
+        self
+    }
+}
+
+impl UnsignedInts {
+    //! Field: two: u16 = 2;
+
+    /// Gets the field: `two`.
+    pub fn two(&self) -> Option<u16> {
+        self.two
+    }
+
+    /// Sets the field: `two`. Returns the previous value.
+    pub fn set_two(&mut self, two: Option<u16>) -> Option<u16> {
+        let old_value: Option<u16> = self.two;
+        self.two = two;
+        old_value
+    }
+
+    /// Builds the field: `two`. Returns the struct itself.
+    pub fn with_two(mut self, two: Option<u16>) -> Self {
+        self.two = two;
+        self
+    }
+}
+
+impl UnsignedInts {
+    //! Field: three: u32 = 3;
+
+    /// Gets the field: `three`.
+    pub fn three(&self) -> Option<u32> {
+        self.three
+    }
+
+    /// Sets the field: `three`. Returns the previous value.
+    pub fn set_three(&mut self, three: Option<u32>) -> Option<u32> {
+        let old_value: Option<u32> = self.three;
+        self.three = three;
+        old_value
+    }
+
+    /// Builds the field: `three`. Returns the struct itself.
+    pub fn with_three(mut self, three: Option<u32>) -> Self {
+        self.three = three;
+        self
+    }
+}
+
+impl UnsignedInts {
+    //! Field: four: u64 = 4;
+
+    /// Gets the field: `four`.
+    pub fn four(&self) -> Option<u64> {
+        self.four
+    }
+
+    /// Sets the field: `four`. Returns the previous value.
+    pub fn set_four(&mut self, four: Option<u64>) -> Option<u64> {
+        let old_value: Option<u64> = self.four;
+        self.four = four;
+        old_value
+    }
+
+    /// Builds the field: `four`. Returns the struct itself.
+    pub fn with_four(mut self, four: Option<u64>) -> Self {
+        self.four = four;
+        self
+    }
+}
