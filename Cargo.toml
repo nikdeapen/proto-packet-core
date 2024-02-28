@@ -8,3 +8,9 @@ homepage = "https://github.com/nikdeapen/proto-packet-core"
 authors = ["Nik Deapen <nik@deapen.com>"]
 edition = "2021"
 license = "MIT"
+
+[dependencies]
+code-gen = { giit = "https://github.com/nikdeapen/code-gen" }
+
+[features]
+tree = []
