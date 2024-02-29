@@ -113,10 +113,22 @@ impl EncodedLen for UnsignedInts {
 
     fn encoded_len(&self) -> usize {
         let mut encoded_len: usize = 0;
-        encoded_len += UnsignedInt8Field::new(1, self.value).encoded_len();
-        encoded_len += UnsignedInt16Field::new(2, false, self.value).encoded_len();
-        encoded_len += UnsignedInt32Field::new(3, false, self.value).encoded_len();
-        encoded_len += UnsignedInt64Field::new(4, false, self.value).encoded_len();
+        encoded_len += UnsignedInt8Field::new(1, self.one).encoded_len();
+        encoded_len += UnsignedInt16Field::new(2, false, self.two).encoded_len();
+        encoded_len += UnsignedInt32Field::new(3, false, self.three).encoded_len();
+        encoded_len += UnsignedInt64Field::new(4, false, self.four).encoded_len();
+        encoded_len
+    }
+}
+
+impl EncodeToSlice for UnsignedInts {
+
+    fn encode_to_slice_unchecked(&self, target: &mut [u8]) -> usize {
+        let mut encoded_len: usize = 0;
+        encoded_len += UnsignedInt8Field::new(1, self.one).encode_to_slice(target);
+        encoded_len += UnsignedInt16Field::new(2, false, self.two).encode_to_slice(target);
+        encoded_len += UnsignedInt32Field::new(3, false, self.three).encode_to_slice(target);
+        encoded_len += UnsignedInt64Field::new(4, false, self.four).encode_to_slice(target);
         encoded_len
     }
 }

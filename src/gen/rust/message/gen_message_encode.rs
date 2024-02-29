@@ -1,6 +1,6 @@
 use code_gen::rust::{
-    Function, ImplBlock, PrimitiveType as RustPrimitive, Receiver, Signature, WithFunctions,
-    WithReceiver, WithResult,
+    Function, ImplBlock, PrimitiveType as RustPrimitive, Receiver, Reference, Signature,
+    WithFunctions, WithReceiver, WithResult, WithVarParams,
 };
 use code_gen::{Literal, Semi, WithName, WithStatements};
 
@@ -53,25 +53,8 @@ impl<'a> GenMessageEncode<'a> {
 
     fn gen_encoded_len_statement(&self, field: &MessageField) -> Result<Semi<Literal>, GenError> {
         if let Some(field_number) = field.field_number() {
-            let field_exp: String = match field.type_tag() {
-                TypeTag::Primitive(primitive) => match primitive {
-                    PrimitiveType::UnsignedInt8 => {
-                        Self::field_exp_int(false, 8, None, field_number)
-                    }
-                    PrimitiveType::UnsignedInt16 => {
-                        // todo -- supported fixed fields
-                        Self::field_exp_int(false, 16, Some(false), field_number)
-                    }
-                    PrimitiveType::UnsignedInt32 => {
-                        // todo -- supported fixed fields
-                        Self::field_exp_int(false, 32, Some(false), field_number)
-                    }
-                    PrimitiveType::UnsignedInt64 => {
-                        // todo -- supported fixed fields
-                        Self::field_exp_int(false, 64, Some(false), field_number)
-                    }
-                },
-            };
+            let field_exp: String =
+                self.gen_field_exp(field.name(), field.type_tag(), field_number)?;
             // todo -- remove literal
             Ok(Semi::from(Literal::from(format!(
                 "encoded_len += {}.encoded_len()",
@@ -82,19 +65,104 @@ impl<'a> GenMessageEncode<'a> {
         }
     }
 
+    fn gen_field_exp(
+        &self,
+        declared_name: &str,
+        type_tag: &TypeTag,
+        field_number: u32,
+    ) -> Result<String, GenError> {
+        match type_tag {
+            TypeTag::Primitive(primitive) => match primitive {
+                PrimitiveType::UnsignedInt8 => {
+                    self.field_exp_int(declared_name, false, 8, None, field_number)
+                }
+                PrimitiveType::UnsignedInt16 => {
+                    // todo -- supported fixed fields
+                    self.field_exp_int(declared_name, false, 16, Some(false), field_number)
+                }
+                PrimitiveType::UnsignedInt32 => {
+                    // todo -- supported fixed fields
+                    self.field_exp_int(declared_name, false, 32, Some(false), field_number)
+                }
+                PrimitiveType::UnsignedInt64 => {
+                    // todo -- supported fixed fields
+                    self.field_exp_int(declared_name, false, 64, Some(false), field_number)
+                }
+            },
+        }
+    }
+
     /// Gets the field constructor expression string.
-    fn field_exp_int(signed: bool, bits: u32, fixed: Option<bool>, field_number: u32) -> String {
+    fn field_exp_int(
+        &self,
+        declared_name: &str,
+        signed: bool,
+        bits: u32,
+        fixed: Option<bool>,
+        field_number: u32,
+    ) -> Result<String, GenError> {
         let signed: &str = if signed { "Signed" } else { "Unsigned" };
-        if let Some(fixed) = fixed {
+        let name: String = self.naming.field_name(declared_name)?;
+        let result: String = if let Some(fixed) = fixed {
             format!(
-                "{}Int{}Field::new({}, {}, self.value)",
-                signed, bits, field_number, fixed
+                "{}Int{}Field::new({}, {}, self.{})",
+                signed, bits, field_number, fixed, name
             )
         } else {
             format!(
-                "{}Int{}Field::new({}, self.value)",
-                signed, bits, field_number
+                "{}Int{}Field::new({}, self.{})",
+                signed, bits, field_number, name
             )
+        };
+        Ok(result)
+    }
+}
+
+impl<'a> GenMessageEncode<'a> {
+    //! EncodedLength
+
+    /// Generates the impl block for implementing `EncodedLen`.
+    pub fn gen_impl_encode_to_slice(&self, message: &Message) -> Result<ImplBlock, GenError> {
+        let mut block: ImplBlock = self.naming.type_name(message.name())?.into();
+        block.set_for_trait("EncodeToSlice");
+
+        let signature: Signature = Signature::from("encode_to_slice_unchecked")
+            .with_receiver(Receiver::Borrowed)
+            .with_param((
+                "target",
+                RustPrimitive::UnsignedInt8
+                    .to_type_tag()
+                    .to_slice()
+                    .to_reference(Reference::MUT),
+            ))
+            .with_result(RustPrimitive::UnsignedIntSize);
+        let mut function: Function = Function::from(signature);
+        function.add_statement(Semi::from("let mut encoded_len: usize = 0"));
+
+        for field in message.fields() {
+            function.add_statement(self.gen_encode_to_slice_statement(field)?);
+        }
+
+        function.add_expression_statement(Literal::from("encoded_len"));
+        block.add_function(function);
+
+        Ok(block)
+    }
+
+    fn gen_encode_to_slice_statement(
+        &self,
+        field: &MessageField,
+    ) -> Result<Semi<Literal>, GenError> {
+        if let Some(field_number) = field.field_number() {
+            let field_exp: String =
+                self.gen_field_exp(field.name(), field.type_tag(), field_number)?;
+            // todo -- remove literal
+            Ok(Semi::from(Literal::from(format!(
+                "encoded_len += {}.encode_to_slice(target)",
+                field_exp
+            ))))
+        } else {
+            unimplemented!("required fields not yet supported")
         }
     }
 }
