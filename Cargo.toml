@@ -10,8 +10,8 @@ edition = "2021"
 license = "MIT"
 
 [dependencies]
-#code-gen = { git = "https://github.com/nikdeapen/code-gen" }
-code-gen = { path = "../code-gen" }
+code-gen = { git = "https://github.com/nikdeapen/code-gen" }
+#code-gen = { path = "../code-gen" }
 
 [features]
 rust = ["code-gen/rust"]
