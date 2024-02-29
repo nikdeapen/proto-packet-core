@@ -9,7 +9,7 @@ use crate::tree::{TypeTag, Var, WithComments, WithTypeTag, WithVar};
 pub struct MessageField {
     comments: Vec<String>,
     var: Var,
-    field_number: Option<u64>,
+    field_number: Option<u32>,
 }
 
 impl<V: Into<Var>> From<V> for MessageField {
@@ -57,18 +57,18 @@ impl MessageField {
     //! Field Number
 
     /// Gets the field number.
-    pub fn field_number(&self) -> Option<u64> {
+    pub fn field_number(&self) -> Option<u32> {
         self.field_number
     }
 
     // Sets the field number.
-    pub fn with_field_number(mut self, field_number: u64) -> Self {
+    pub fn with_field_number(mut self, field_number: u32) -> Self {
         self.set_field_number(field_number);
         self
     }
 
     // Sets the field number.
-    pub fn set_field_number(&mut self, field_number: u64) {
+    pub fn set_field_number(&mut self, field_number: u32) {
         self.field_number = Some(field_number.into());
     }
 }

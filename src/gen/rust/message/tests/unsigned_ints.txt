@@ -108,3 +108,15 @@ impl UnsignedInts {
         self
     }
 }
+
+impl EncodedLen for UnsignedInts {
+
+    fn encoded_len(&self) -> usize {
+        let mut encoded_len: usize = 0;
+        encoded_len += UnsignedInt8Field::new(1, self.value).encoded_len();
+        encoded_len += UnsignedInt16Field::new(2, false, self.value).encoded_len();
+        encoded_len += UnsignedInt32Field::new(3, false, self.value).encoded_len();
+        encoded_len += UnsignedInt64Field::new(4, false, self.value).encoded_len();
+        encoded_len
+    }
+}

@@ -1,7 +1,7 @@
 use code_gen::rust::Source;
 use code_gen::WithStatements;
 
-use crate::gen::rust::{GenMessageField, GenMessageStruct, Naming, Typing};
+use crate::gen::rust::{GenMessageEncode, GenMessageField, GenMessageStruct, Naming, Typing};
 use crate::gen::GenError;
 use crate::tree::Message;
 
@@ -26,6 +26,9 @@ impl GenMessage {
         for field in message.fields() {
             source.add_statement(gen.gen_field(message, field)?);
         }
+
+        let gen: GenMessageEncode = GenMessageEncode::new(&self.naming, &self.typing);
+        source.add_statement(gen.gen_impl_encoded_len(message)?);
 
         Ok(source)
     }
