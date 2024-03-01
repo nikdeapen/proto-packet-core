@@ -1,6 +1,6 @@
 use code_gen::rust::{
     Function, ImplBlock, PrimitiveType as RustPrimitive, Receiver, Reference, Signature,
-    WithFunctions, WithReceiver, WithResult, WithVarParams,
+    TypeTag as RustType, WithFnGenerics, WithFunctions, WithReceiver, WithResult, WithVarParams,
 };
 use code_gen::{Literal, Semi, WithName, WithStatements};
 
@@ -119,7 +119,7 @@ impl<'a> GenMessageEncode<'a> {
 }
 
 impl<'a> GenMessageEncode<'a> {
-    //! EncodedLength
+    //! EncodeToSlice
 
     /// Generates the impl block for implementing `EncodedLen`.
     pub fn gen_impl_encode_to_slice(&self, message: &Message) -> Result<ImplBlock, GenError> {
@@ -137,13 +137,13 @@ impl<'a> GenMessageEncode<'a> {
             ))
             .with_result(RustPrimitive::UnsignedIntSize);
         let mut function: Function = Function::from(signature);
-        function.add_statement(Semi::from("let mut encoded_len: usize = 0"));
 
+        function.add_statement(Semi::from("let mut encoded_len: usize = 0"));
         for field in message.fields() {
             function.add_statement(self.gen_encode_to_slice_statement(field)?);
         }
-
         function.add_expression_statement(Literal::from("encoded_len"));
+
         block.add_function(function);
 
         Ok(block)
@@ -159,6 +159,56 @@ impl<'a> GenMessageEncode<'a> {
             // todo -- remove literal
             Ok(Semi::from(Literal::from(format!(
                 "encoded_len += {}.encode_to_slice(target)",
+                field_exp
+            ))))
+        } else {
+            unimplemented!("required fields not yet supported")
+        }
+    }
+}
+
+impl<'a> GenMessageEncode<'a> {
+    //! EncodeToWrite
+
+    /// Generates the impl block for implementing `EncodeToWrite`.
+    pub fn gen_impl_encode_to_write(&self, message: &Message) -> Result<ImplBlock, GenError> {
+        let mut block: ImplBlock = self.naming.type_name(message.name())?.into();
+        block.set_for_trait("EncodeToWrite");
+
+        let result_type: RustType = RustType::Named("Result".to_string())
+            .with_generic("usize")
+            .with_generic("io::Error");
+        let signature: Signature = Signature::from("encode_to_write")
+            .with_receiver(Receiver::Borrowed)
+            .with_generic(("W", "io::Write"))
+            .with_param((
+                "w",
+                RustType::Named("W".to_string()).to_reference(Reference::MUT),
+            ))
+            .with_result(result_type);
+        let mut function: Function = Function::from(signature);
+
+        function.add_statement(Semi::from("let mut encoded_len: usize = 0"));
+        for field in message.fields() {
+            function.add_statement(self.gen_encode_to_write_statement(field)?);
+        }
+        function.add_expression_statement(Literal::from("encoded_len"));
+
+        block.add_function(function);
+
+        Ok(block)
+    }
+
+    fn gen_encode_to_write_statement(
+        &self,
+        field: &MessageField,
+    ) -> Result<Semi<Literal>, GenError> {
+        if let Some(field_number) = field.field_number() {
+            let field_exp: String =
+                self.gen_field_exp(field.name(), field.type_tag(), field_number)?;
+            // todo -- remove literal
+            Ok(Semi::from(Literal::from(format!(
+                "encoded_len += {}.encode_to_write(w)?",
                 field_exp
             ))))
         } else {

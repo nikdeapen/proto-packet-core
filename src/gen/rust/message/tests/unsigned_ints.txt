@@ -132,3 +132,15 @@ impl EncodeToSlice for UnsignedInts {
         encoded_len
     }
 }
+
+impl EncodeToWrite for UnsignedInts {
+
+    fn encode_to_write<W>(&self, w: &mut W) -> Result<usize, io::Error> where W: io::Write {
+        let mut encoded_len: usize = 0;
+        encoded_len += UnsignedInt8Field::new(1, self.one).encode_to_write(w)?;
+        encoded_len += UnsignedInt16Field::new(2, false, self.two).encode_to_write(w)?;
+        encoded_len += UnsignedInt32Field::new(3, false, self.three).encode_to_write(w)?;
+        encoded_len += UnsignedInt64Field::new(4, false, self.four).encode_to_write(w)?;
+        encoded_len
+    }
+}
