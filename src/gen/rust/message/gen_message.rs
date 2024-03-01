@@ -29,6 +29,7 @@ impl GenMessage {
 
         let gen: GenMessageEncode = GenMessageEncode::new(&self.naming, &self.typing);
         source.add_statement(gen.gen_impl_encoded_len(message)?);
+        source.add_statement(gen.gen_impl_encode_to_slice(message)?);
 
         Ok(source)
     }
