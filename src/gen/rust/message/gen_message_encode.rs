@@ -1,6 +1,7 @@
 use code_gen::rust::{
     Function, ImplBlock, PrimitiveType as RustPrimitive, Receiver, Reference, Signature,
-    TypeTag as RustType, WithFnGenerics, WithFunctions, WithReceiver, WithResult, WithVarParams,
+    TypeTag as RustType, WithFnGenerics, WithFunctions, WithReceiver, WithResult, WithUnsafeFlag,
+    WithVarParams,
 };
 use code_gen::{Literal, Semi, WithName, WithStatements};
 
@@ -136,7 +137,7 @@ impl<'a> GenMessageEncode<'a> {
                     .to_reference(Reference::MUT),
             ))
             .with_result(RustPrimitive::UnsignedIntSize);
-        let mut function: Function = Function::from(signature);
+        let mut function: Function = Function::from(signature).with_unsafe();
 
         function.add_statement(Semi::from("let mut encoded_len: usize = 0"));
         for field in message.fields() {
@@ -158,7 +159,7 @@ impl<'a> GenMessageEncode<'a> {
                 self.gen_field_exp(field.name(), field.type_tag(), field_number)?;
             // todo -- remove literal
             Ok(Semi::from(Literal::from(format!(
-                "encoded_len += {}.encode_to_slice(target)",
+                "encoded_len += {}.encode_to_slice_unchecked(target)",
                 field_exp
             ))))
         } else {
@@ -192,7 +193,7 @@ impl<'a> GenMessageEncode<'a> {
         for field in message.fields() {
             function.add_statement(self.gen_encode_to_write_statement(field)?);
         }
-        function.add_expression_statement(Literal::from("encoded_len"));
+        function.add_expression_statement(Literal::from("Ok(encoded_len)"));
 
         block.add_function(function);
 

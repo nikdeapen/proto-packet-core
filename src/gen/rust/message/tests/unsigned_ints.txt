@@ -13,7 +13,7 @@
 ///     // The fourth field.
 ///     four: u64 = 4;
 /// }
-#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Hash, Debug, Default)]
 pub struct UnsignedInts {
     one: Option<u8>,
     two: Option<u16>,
@@ -123,12 +123,12 @@ impl EncodedLen for UnsignedInts {
 
 impl EncodeToSlice for UnsignedInts {
 
-    fn encode_to_slice_unchecked(&self, target: &mut [u8]) -> usize {
+    unsafe fn encode_to_slice_unchecked(&self, target: &mut [u8]) -> usize {
         let mut encoded_len: usize = 0;
-        encoded_len += UnsignedInt8Field::new(1, self.one).encode_to_slice(target);
-        encoded_len += UnsignedInt16Field::new(2, false, self.two).encode_to_slice(target);
-        encoded_len += UnsignedInt32Field::new(3, false, self.three).encode_to_slice(target);
-        encoded_len += UnsignedInt64Field::new(4, false, self.four).encode_to_slice(target);
+        encoded_len += UnsignedInt8Field::new(1, self.one).encode_to_slice_unchecked(target);
+        encoded_len += UnsignedInt16Field::new(2, false, self.two).encode_to_slice_unchecked(target);
+        encoded_len += UnsignedInt32Field::new(3, false, self.three).encode_to_slice_unchecked(target);
+        encoded_len += UnsignedInt64Field::new(4, false, self.four).encode_to_slice_unchecked(target);
         encoded_len
     }
 }
@@ -141,6 +141,40 @@ impl EncodeToWrite for UnsignedInts {
         encoded_len += UnsignedInt16Field::new(2, false, self.two).encode_to_write(w)?;
         encoded_len += UnsignedInt32Field::new(3, false, self.three).encode_to_write(w)?;
         encoded_len += UnsignedInt64Field::new(4, false, self.four).encode_to_write(w)?;
-        encoded_len
+        Ok(encoded_len)
+    }
+}
+
+impl DecodeFromReadLengthPrefixed for UnsignedInts {}
+
+impl DecodeFromRead for UnsignedInts {
+
+    fn decode_from_read<R>(r: &mut R) -> Result<Self, io::Error> where R: io::Read {
+        let len: usize = VarIntSize::decode_from_read_prefix(r)?.value;
+        let mut r: ReadLimit<R> = ReadLimit { read: r, limit: len };
+
+        let result: Self = Self::default();
+        let mut field_number: u32 = 0;
+        while let Some(header) = FieldHeader::decode_from_read_prefix_optional(&mut r)? {
+            field_number += header.field_number();
+            match field_number {
+                1 => {
+                    result.set_one(Some(read::read_u8(&mut r)?));
+                }
+                2 => {
+                    result.set_two(Some(read::read_u16_var(&mut r)?));
+                }
+                3 => {
+                    result.set_three(Some(read::read_u32_var(&mut r)?));
+                }
+                4 => {
+                    result.set_four(Some(read::read_u64_var(&mut r)?));
+                }
+                _ => {
+                    unimplemented!("unknown fields not yet supported");
+                }
+            }
+        }
+        Ok(result)
     }
 }
