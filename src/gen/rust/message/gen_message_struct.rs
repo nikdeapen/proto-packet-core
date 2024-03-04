@@ -79,6 +79,7 @@ impl<'a> GenMessageStruct<'a> {
         s.add_derive("PartialEq");
         s.add_derive("Hash");
         s.add_derive("Debug");
+        s.add_derive("Default");
 
         Ok(())
     }
