@@ -11,7 +11,7 @@ license = "MIT"
 
 [dependencies]
 code-gen = { git = "https://github.com/nikdeapen/code-gen" }
-#code-gen = { path = "../code-gen" }
+lex = { path = "../lex" }
     
 [features]
 rust = ["code-gen/rust"]
