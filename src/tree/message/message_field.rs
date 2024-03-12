@@ -69,7 +69,11 @@ impl MessageField {
 
     // Sets the field number.
     pub fn set_field_number(&mut self, field_number: u32) {
-        self.field_number = Some(field_number.into());
+        if field_number == 0 {
+            self.field_number = None;
+        } else {
+            self.field_number = Some(field_number.into());
+        }
     }
 }
 
