@@ -1,0 +1,15 @@
+// A message with unsigned integers.
+message UnsignedInts {
+
+    // The first field.
+    one u8 = 1;
+
+    // The second field.
+    two u16 = 2;
+
+    // The first field.
+    three u32 = 3;
+
+    // The first field.
+    four u64 = 4;
+}
